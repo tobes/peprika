@@ -568,8 +568,8 @@ class Peprika(object):
             if line_len > 1:
                 indent += line_len
             if indents and indent == self.last_indent + INDENT_SIZE:
-                pass
-                indent += INDENT_SIZE
+                if not self.line_has_another_opener():
+                    indent += INDENT_SIZE
             if level == 1 and self.last_closed_paren and self.last_closed_paren['line_close'] == line and self.last_closed_paren['line'] != line:
                 indent = self.last_closed_paren['indent'] + line_len
             if last and last['line'] == line and self.stream_offset(-1)[1] in '{[':
@@ -733,6 +733,23 @@ class Peprika(object):
                 cons = cons[:-1]
             c += 1
         return c
+
+
+    def line_has_another_opener(self):
+        cons = []
+        c = 1
+        line = self.stream_offset(c)[3][0]
+        while self.stream_offset(c)[3][0] == line:
+            t_next = self.stream_offset(c)
+            if t_next[1] in '({[':
+                cons.append(t_next[1])
+            if t_next[1] in ')}]':
+                cons = cons[:-1]
+            if t_next[0] == tokenize.NEWLINE:
+                break
+            c += 1
+        return bool(len(cons))
+
 
     def indents(self):
         c = - 1
