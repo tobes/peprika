@@ -278,13 +278,11 @@ class Peprika(object):
         indent_current = self.indent_current
         if indent_last:
             c_indent = self.indents_last[indent_last - 1]
-            hang = 'h' if c_indent['hanging'] else ' '
             indent = c_indent['opening']
             if indent is None:
                indent = c_indent['indent']
             c_indent['opening'] = None
         else:
-            hang = ' '
             indent = self.indent_level * INDENT_SIZE
             c_indent = None
 
@@ -567,22 +565,16 @@ class Peprika(object):
             if last and last['line'] != line:
                 pass
                 indent = last['indent']
-            if self.t_start[0] ==100: print indent
             if line_len > 1:
                 indent += line_len
-            if self.t_start[0] ==100:
-                print level, self.t_line, self.t_start, indent, self.last_indent
             if indents and indent == self.last_indent + INDENT_SIZE:
                 pass
-                print level, self.t_line, self.t_start, indent, self.last_indent
                 indent += INDENT_SIZE
-            if self.t_start[0] ==100: print indent
             if level == 1 and self.last_closed_paren and self.last_closed_paren['line_close'] == line and self.last_closed_paren['line'] != line:
                 indent = self.last_closed_paren['indent'] + line_len
             if last and last['line'] == line and self.stream_offset(-1)[1] in '{[':
                 pass
                 indent = last['indent'] + 1
-            if self.t_start[0] ==100: print indent
             opening = None
             closing = indent
             minimum = indent
@@ -622,7 +614,6 @@ class Peprika(object):
                     last['indent'] = indent - 1
             if level == 1:
                 pass
-            if self.t_start[0] ==100: print indent
 
         info = dict(closing=closing,
                     opening=opening,
