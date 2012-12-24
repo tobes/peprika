@@ -583,20 +583,20 @@ class Peprika(object):
                 opening = indent
                 indent += 1
                 closing = indent
-            elif last:
-                if line_len == 1 and last['line'] == line - 1 and not self.closing_op_on_same_line():
+            elif line_len == 1 and last:
+                if last['line'] == line - 1 and not self.closing_op_on_same_line():
                     opening = indent
                     indent += 1
                     closing = indent
-                elif line_len == 1 and last['line'] < line and not self.closing_op_on_same_line() and char == '(':
+                elif last['line'] < line and not self.closing_op_on_same_line() and char == '(':
                     opening = indent
                     indent += 1
                     closing = indent
-                elif last_hanging and line_len == 1 and char in '{[' and last['char'] in '{[' and not self.closing_op_on_same_line():
+                elif last_hanging and char in '{[' and last['char'] in '{[' and not self.closing_op_on_same_line():
                     opening = indent
                     indent += 1
                     closing = indent
-                elif last['char'] == '(' and last['hanging'] and char in '{[' and line_len == 1 and not self.closing_op_on_same_line():
+                elif last['char'] == '(' and last['hanging'] and char in '{[' and not self.closing_op_on_same_line():
                     opening = indent
                     indent += 1
                     closing = indent
