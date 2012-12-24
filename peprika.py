@@ -105,7 +105,6 @@ class Peprika(object):
             self.need_space_before = True
 
     def _OP(self):
-
         # commas should be on the end of lines not at the start
         if self.t_value == ',' and not self.line:
             last_line = self.out[-1].rstrip(NEWLINE) + ',' + NEWLINE
@@ -164,7 +163,7 @@ class Peprika(object):
             self.need_space_after = False
 
     def _COMMENT(self):
-        # Format Inline comments if wanted
+        # Format in-line comments if wanted
         if self.line:
             self.need_space_before = True
             self.t_value = ' ' + re.sub('^#+([^ ])', '# \\1', self.t_value)
@@ -183,7 +182,7 @@ class Peprika(object):
         # changes do not see them but should be aligned to
         # them so look forward to see if they exists and
         # prematurely alter the indentation level.  We only do
-        # this once for multiline comments not for each
+        # this once for multi-line comments not for each
         # comment.
         else:
             if not self.block_indent:
@@ -194,14 +193,16 @@ class Peprika(object):
                     self.t_value = self.format_comment(self.t_value)
 
     def stream_offset(self, offset=0):
+        ''' Get the stream item relative to the one currently being
+        processed. '''
         try:
             return self.stream[self.offset + offset]
         except IndexError:
             return (None, '', False)
 
     def add_blanklines_if_needed(self):
-        # Add extra blank lines before class and def statements
-        # Two if on top level otherwise one.
+        ''' Add extra blank lines before class and def statements.  Two if
+        on top level otherwise one. '''
         if (self.options.add_blank_lines
                 and self.out
                 and not self.out[-1].lstrip().startswith('@')
@@ -233,7 +234,7 @@ class Peprika(object):
                     self.block_indent -= 1
                 indent -= 1
                 c += 1
-            # For multiline comments look after the last comment
+            # For multi-line comments look after the last comment
             elif toktype2 == tokenize.NL:
                 nl_count += 1
                 if break_on_nl and nl_count == 2:
@@ -248,6 +249,7 @@ class Peprika(object):
         return indent
 
     def format_comment(self, comment, remove_initial_indent=True):
+        ''' Reformat the comment to fit on line length. '''
         # don't reformat hashbangs
         if not self.out and not self.line and comment.startswith('#!'):
             return comment
