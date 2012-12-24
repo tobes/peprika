@@ -359,7 +359,8 @@ class Peprika(object):
             self.remainder = True
         self.on_newline()
 
-    def token(self, t):
+    def token_name(self, t):
+        ''' Return the name of the token. '''
         return tokenize.tok_name.get(t, t)
 
     def reformat(self, source):
@@ -373,7 +374,7 @@ class Peprika(object):
             if 0:  # Change to if 1 to see the tokens fly by.
                 print ('%10s %-20r' %
                        (
-                           self.token(t_type),
+                           self.token_name(t_type),
                            t_value
                        )
                        ), t_line[:-1]
