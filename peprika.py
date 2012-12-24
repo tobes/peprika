@@ -425,7 +425,7 @@ class Peprika(object):
             # Continuation lines
             if not self.nl and self.l_line and self.l_line_no != self.t_start[0]:
                 # only use backslash if not in a bracket etc.
-                # Also multiline strings need to be accounted for
+                # Also multi-line strings need to be accounted for
                 n_token = self.stream_offset(0)
                 if n_token[0] != tokenize.STRING:# or '\n' not in n_token[1]:
                     if not self.in_container():
@@ -437,7 +437,7 @@ class Peprika(object):
                         self._NEWLINE()
                     self.do_newline()
 
-            # add the token to the line with any requeste whitespace
+            # add the token to the line with any request whitespace
             if self.t_type not in [tokenize.NEWLINE, tokenize.NL]:
                 if (self.line and self.need_space_before
                         and self.line[-1] != ' '):
@@ -764,7 +764,7 @@ class Peprika(object):
 
 
     def out_diff(self, filename, origional, current):
-        ''' Print out a diff between the origional and generated code '''
+        ''' Print out a diff between the original and generated code '''
         col = self.options.color_diff
         if self.options.show_diff:
             if col:
@@ -850,7 +850,7 @@ class Peprika(object):
     def explode(self, filename):
         msg = ['\nPeprika Error:\n\nSomething has gone very wrong formatting '
                'this code.  The file being reformatted is \n%s\nAborting '
-               'please report this issue peferrably including the code that '
+               'please report this issue preferably including the code that '
                'caused this error.\n']
         print msg
 #        sys.exit(msg[0] % filename)
