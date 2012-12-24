@@ -20,7 +20,7 @@ BASIC_TOKENS = [tokenize.NAME, tokenize.STRING, tokenize.NUMBER]
 
 class Peprika(object):
 
-    opps = {
+    opposites = {
         '(': ')',
         '[': ']',
         '{': '}',
@@ -67,7 +67,7 @@ class Peprika(object):
         if self.options.fix_quotes:
             t = self.t_value
             q = self.options.fix_quotes
-            qq = self.opps[self.options.fix_quotes]
+            qq = self.opposites[self.options.fix_quotes]
             sp = u''
             if t.startswith('u'):
                 sp += t[0]
