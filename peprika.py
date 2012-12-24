@@ -79,7 +79,7 @@ class Peprika(object):
                 if t[1:3] == qq * 2:
                     s = 3
                 t = t[s:-s]
-                # Only change if the sring contains no ' or " chars
+                # Only change if the string contains no ' or " chars
                 if '"' not in t and "'" not in t:
                     self.t_value = sp + (q * s) + t + (q * s)
         # docstrings
