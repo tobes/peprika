@@ -578,26 +578,28 @@ class Peprika(object):
             opening = None
             closing = indent
             minimum = indent
+
             if closing_op_starts_line and line_len == 1:
                 opening = indent
                 indent += 1
                 closing = indent
-            elif line_len == 1 and last and last['line'] == line - 1 and not self.closing_op_on_same_line():
-                opening = indent
-                indent += 1
-                closing = indent
-            elif line_len == 1 and last and last['line'] < line and not self.closing_op_on_same_line() and char == '(':
-                opening = indent
-                indent += 1
-                closing = indent
-            elif last_hanging and line_len == 1 and char in '{[' and last and last['char'] in '{[' and not self.closing_op_on_same_line():
-                opening = indent
-                indent += 1
-                closing = indent
-            elif last and last['char'] == '(' and last['hanging'] and char in '{[' and line_len == 1 and not self.closing_op_on_same_line():
-                opening = indent
-                indent += 1
-                closing = indent
+            elif last:
+                if line_len == 1 and last['line'] == line - 1 and not self.closing_op_on_same_line():
+                    opening = indent
+                    indent += 1
+                    closing = indent
+                elif line_len == 1 and last['line'] < line and not self.closing_op_on_same_line() and char == '(':
+                    opening = indent
+                    indent += 1
+                    closing = indent
+                elif last_hanging and line_len == 1 and char in '{[' and last['char'] in '{[' and not self.closing_op_on_same_line():
+                    opening = indent
+                    indent += 1
+                    closing = indent
+                elif last['char'] == '(' and last['hanging'] and char in '{[' and line_len == 1 and not self.closing_op_on_same_line():
+                    opening = indent
+                    indent += 1
+                    closing = indent
 
             if closing_op_starts_line and level == 1 and char == '(' and self.stream_offset(self.find_closing_op_offset())[1] == '\n':
                 pass
