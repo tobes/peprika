@@ -38,7 +38,6 @@ class Peprika(object):
         self.pep_examples = {}
 
     def _NEWLINE(self):
-        # End of statement so new line
         self.continuation = False
         self.l_line = None
         self.nl = True
