@@ -404,7 +404,10 @@ class Peprika(object):
         self.last_indent = 0
         self.last_closed_paren = None
 
-        self.init()
+        self.indents_current = []
+        self.indents_last = []
+        self.indent_current = 0
+        self.indent_last = 0
 
         # Process the stream
         self.offset = 0
@@ -478,12 +481,6 @@ class Peprika(object):
                 and self.out and not self.out[-1].strip()):
             self.out = self.out[:-1]
         return self.out
-
-    def init(self):
-        self.indents_current = []
-        self.indents_last = []
-        self.indent_current = 0
-        self.indent_last = 0
 
     def on_newline(self):
         self.indents_last = self.indents_current[:]
