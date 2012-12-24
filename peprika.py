@@ -489,6 +489,24 @@ class Peprika(object):
             self.last_indent = self.indent_level * INDENT_SIZE
 
     def indent_in(self):
+
+        def indent_one_column_needed():
+            # Do we need to indent by one?
+            # Used for non-hanging indents
+            if closing_op_starts_line and line_len == 1:
+                return True
+            if line_len != 1 or not last:
+                return False
+            if last['line'] == line - 1 and not self.closing_op_on_same_line():
+                return True
+            if last['line'] < line and not self.closing_op_on_same_line() and char == '(':
+                return True
+            if last_hanging and char in '{[' and last['char'] in '{[' and not self.closing_op_on_same_line():
+                return True
+            if last['char'] == '(' and last['hanging'] and char in '{[' and not self.closing_op_on_same_line():
+                return True
+            return False
+
         char = self.t_value
         level = len(self.indents_current) + 1
         line_len = len(''.join(self.line).rstrip())
@@ -579,27 +597,10 @@ class Peprika(object):
             closing = indent
             minimum = indent
 
-            if closing_op_starts_line and line_len == 1:
+            if indent_one_column_needed():
                 opening = indent
                 indent += 1
                 closing = indent
-            elif line_len == 1 and last:
-                if last['line'] == line - 1 and not self.closing_op_on_same_line():
-                    opening = indent
-                    indent += 1
-                    closing = indent
-                elif last['line'] < line and not self.closing_op_on_same_line() and char == '(':
-                    opening = indent
-                    indent += 1
-                    closing = indent
-                elif last_hanging and char in '{[' and last['char'] in '{[' and not self.closing_op_on_same_line():
-                    opening = indent
-                    indent += 1
-                    closing = indent
-                elif last['char'] == '(' and last['hanging'] and char in '{[' and not self.closing_op_on_same_line():
-                    opening = indent
-                    indent += 1
-                    closing = indent
 
             if closing_op_starts_line and level == 1 and char == '(' and self.stream_offset(self.find_closing_op_offset())[1] == '\n':
                 pass
