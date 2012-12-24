@@ -63,6 +63,7 @@ class Peprika(object):
         self.nl = True
 
     def _STRING(self):
+        # Change quotes to single or double if requested.
         if self.options.fix_quotes:
             t = self.t_value
             q = self.options.fix_quotes
