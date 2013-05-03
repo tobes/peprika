@@ -192,6 +192,11 @@ class Peprika(object):
                 self.scan_indent()
                 if self.options.reflow_comments:
                     self.t_value = self.format_comment(self.t_value)
+                if not self.block_indent:
+                    if self.previous_line_ends_with()[2][-2:-1] == ':':
+                        self.indent_level += 1
+                        self.block_indent += 1
+
 
     def stream_offset(self, offset=0):
         ''' Get the stream item relative to the one currently being
