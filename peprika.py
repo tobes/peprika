@@ -219,6 +219,7 @@ class Peprika(object):
                     self.out.append(NEWLINE)
                 if not self.indent_level:
                     self.out.append(NEWLINE)
+        if self.t_value in ['@', 'class', 'def']:
             self.supress_next_blank_line = False
 
     def scan_indent(self, update=True, start=1, break_on_nl=True):
