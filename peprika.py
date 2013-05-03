@@ -146,7 +146,7 @@ class Peprika(object):
 
         # Special case for list slices
         if (self.t_value == ':' and self.in_container()
-            and self.last_container()['char'] == '['):
+                and self.last_container()['char'] == '['):
             self.need_space_after = False
 
         # decorators
@@ -196,7 +196,6 @@ class Peprika(object):
                     if self.previous_line_ends_with()[2][-2:-1] == ':':
                         self.indent_level += 1
                         self.block_indent += 1
-
 
     def stream_offset(self, offset=0):
         ''' Get the stream item relative to the one currently being
@@ -282,7 +281,6 @@ class Peprika(object):
         else:
             return comments[-1]
 
-
     def output_line(self, no_blank=False):
         ''' Append a created line to our list '''
 
@@ -292,7 +290,7 @@ class Peprika(object):
             c_indent = self.indents_last[indent_last - 1]
             indent = c_indent['opening']
             if indent is None:
-               indent = c_indent['indent']
+                indent = c_indent['indent']
             c_indent['opening'] = None
         else:
             indent = self.indent_level * INDENT_SIZE
@@ -305,7 +303,6 @@ class Peprika(object):
             indent += INDENT_SIZE
             if self.indents():
                 indent += INDENT_SIZE
-
 
         self.last_indent = indent
 
@@ -359,7 +356,7 @@ class Peprika(object):
         # Update our hanging indent
 
         self.hanging_old = self.hanging
-        self.hindent = self.hindent[:self.hanging  + 1]
+        self.hindent = self.hindent[:self.hanging + 1]
         self.clear_container_count = 0
         self.nl = False
         self.line = []
@@ -401,8 +398,9 @@ class Peprika(object):
         self.block_indent = 0
         self.container = []  # Record of container depth for ({[
         self.clear_container_count = 0
-        self.hindent = [{'pos':0, 'indent':0, 'open':True}]  # Indentation amounts for hanging elements
-        self.hindent_old = [{'pos':0, 'indent':0, 'open':True}]  # Indentation cache
+        # Indentation amounts for hanging elements
+        self.hindent = [{'pos': 0, 'indent': 0, 'open': True}]
+        self.hindent_old = [{'pos': 0, 'indent': 0, 'open': True}]  # Indentation cache
         self.hanging = 0  # Current hanging level
         self.hanging_old = 0  # Current hanging level
         self.hanging_current = 0
@@ -441,7 +439,7 @@ class Peprika(object):
                 # only use backslash if not in a bracket etc.
                 # Also multi-line strings need to be accounted for
                 n_token = self.stream_offset(0)
-                if n_token[0] != tokenize.STRING:# or '\n' not in n_token[1]:
+                if n_token[0] != tokenize.STRING:  # or '\n' not in n_token[1]:
                     if not self.in_container():
                         if (self.line and self.line[-1] != ' '):
                             self.line.append(' ')
@@ -535,7 +533,7 @@ class Peprika(object):
         indent = self.last_indent
         line = self.t_start[0]
         hanging = ((self.stream_offset(1)[0] == tokenize.NL or (self.stream_offset(1)[0] != tokenize.STRING and self.stream_offset(1)[3][0] != self.l_line_no)))
-        if self.continuation_last and level == 1 and char in '[{' and self.stream_offset(1)[0] != tokenize.NL :
+        if self.continuation_last and level == 1 and char in '[{' and self.stream_offset(1)[0] != tokenize.NL:
             hanging = False
         closing_op_starts_line = self.closing_op_starts_line()
         indents = self.indents()
@@ -581,7 +579,7 @@ class Peprika(object):
                 pass
                 closing = self.last_indent
             else:
-                indent +=  INDENT_SIZE
+                indent += INDENT_SIZE
             if last and indent == last['indent']:
                 pass
                 closing = indent
@@ -636,9 +634,9 @@ class Peprika(object):
                     hanging=hanging,
                     indent=indent,
                     last_indent=self.last_indent,
-                    line = line,
-                    line_close = self.stream_offset(self.find_closing_op_offset() - 1)[3][0],
-                    line_len = line_len,
+                    line=line,
+                    line_close=self.stream_offset(self.find_closing_op_offset() - 1)[3][0],
+                    line_len=line_len,
                     level=level,
                     minimum=minimum,
                     closable=closable,
@@ -668,7 +666,7 @@ class Peprika(object):
                 current['minimum'] = last['last_indent']
                 current['indent'] = last['last_indent']
                 current['hanging'] = True
-            elif  current['level'] == 1 and current['char'] == '(' and current['closable'] and (last['hanging'] or last['char'] == '('):
+            elif current['level'] == 1 and current['char'] == '(' and current['closable'] and (last['hanging'] or last['char'] == '('):
                 pass
                 current['closing'] = current['last_indent']
                 current['minimum'] = last['last_indent']
@@ -684,8 +682,8 @@ class Peprika(object):
     def previous_line_paren(self):
         line = self.t_start[0]
         for i in xrange(self.indent_current, 0, -1):
-            if self.indents_current[i -1]['line'] != line:
-                return self.indents_current[i -1]
+            if self.indents_current[i - 1]['line'] != line:
+                return self.indents_current[i - 1]
         return None
 
     def closing_op_starts_line(self):
@@ -751,7 +749,6 @@ class Peprika(object):
             c += 1
         return False
 
-
     def find_closing_op_offset(self, c=0):
         cons = [self.stream_offset(c)[1]]
         c += 1
@@ -763,7 +760,6 @@ class Peprika(object):
                 cons = cons[:-1]
             c += 1
         return c
-
 
     def line_has_another_opener(self):
         cons = []
@@ -780,15 +776,13 @@ class Peprika(object):
             c += 1
         return bool(len(cons))
 
-
     def indents(self):
-        c = - 1
+        c = -1
         while True:
             t_next = self.stream_offset(c)
             if t_next[0] == tokenize.NEWLINE:
                 return self.stream_offset(c - 1)[1] == ':'
             c += 1
-
 
     def out_diff(self, filename, origional, current):
         ''' Print out a diff between the original and generated code '''
@@ -891,9 +885,7 @@ class Peprika(object):
                'caused this error.\n']
         sys.exit(msg[0] % filename)
 
-
     def find_pep8_errors(self, filename=None, lines=None):
-
 
         try:
             sys.stdout = cStringIO.StringIO()
@@ -927,7 +919,7 @@ class Peprika(object):
                                                               fixed)
         else:
             pass
-           # print '%s Perfect no errors (%s fixed)' % (filename, fixed)
+        # print '%s Perfect no errors (%s fixed)' % (filename, fixed)
         if full:
             errors = post['errors']
             for error in errors:
