@@ -387,7 +387,7 @@ class Peprika(object):
                            t_value
                        )
                        ), t_line[:-1]
-            self.stream.append((t_type, t_value, t_line, start, end))
+            self.stream.append((t_type, t_value.decode('utf-8'), t_line, start, end))
 
         self.out = []  # Final output
         self.line = []  # elements for the current line being built
@@ -799,6 +799,8 @@ class Peprika(object):
 
         count = 0
         for line in difflib.unified_diff(origional, current):
+            if isinstance(line, unicode):
+                line = line.encode('utf-8')
             count += 1
             if count <= 2:
                 line = line.rstrip() + '\n'
@@ -809,7 +811,7 @@ class Peprika(object):
                 self.added += 1
                 start = Fore.GREEN
             else:
-                start = ''
+                start = u''
             if self.options.show_diff:
                 if col and start:
                     ln = start + line.rstrip() + Fore.RESET
@@ -856,9 +858,12 @@ class Peprika(object):
         if self.options.show_diff or self.options.stats:
             self.out_diff(filename, data_copy, data)
         if self.options.output_file:
-            print ''.join(data),
+            for line in data:
+                print line.encode('utf-8'),
+
         f = open('poo.py', 'w')
-        f.write(''.join(data))
+        for line in data:
+            f.write(line.encode('utf-8'))
         f.close()
 
         self.files += 1
