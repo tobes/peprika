@@ -591,8 +591,7 @@ class Peprika(object):
             if last and last['line'] == line and last['indent'] and last['line_len'] > 1:
                 indent = last['indent'] - last['line_len']
                 pass
-            if self.continuation_last:
-                pass
+            if self.continuation_last and not self.line_has_another_opener():
                 indent += INDENT_SIZE
             if last and last['line'] != line:
                 pass
