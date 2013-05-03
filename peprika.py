@@ -491,6 +491,9 @@ class Peprika(object):
         if (self.options.kill_blank_lines
                 and self.out and not self.out[-1].strip()):
             self.out = self.out[:-1]
+
+        # convert back to string data
+        self.out = [x.encode('utf-8') for x in self.out]
         return self.out
 
     def on_newline(self):
@@ -860,17 +863,14 @@ class Peprika(object):
         if self.options.show_diff or self.options.stats:
             self.out_diff(filename, data_copy, data)
         if self.options.output_file:
-            for line in data:
-                print line.encode('utf-8'),
+            print ''.join(data)
 
         if self.options.fix:
             f = open(filename, 'w')
-            for line in data:
-                f.write(line)
+            f.write(''.join(data))
             f.close()
         f = open('poo.py', 'w')
-        for line in data:
-            f.write(line.encode('utf-8'))
+        f.write(''.join(data))
         f.close()
 
         self.files += 1
