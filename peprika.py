@@ -153,6 +153,7 @@ class Peprika(object):
         if self.t_value == '@':
             self.add_blanklines_if_needed()
             self.need_space_after = False
+            self.supress_next_blank_line = True
 
         # differentiate between subtraction and negation
         if (self.t_value in '-'
@@ -207,10 +208,13 @@ class Peprika(object):
                 and self.out
                 and not self.out[-1].lstrip().startswith('@')
                 and not self.line and self.t_value in ['@', 'class', 'def']):
-            if not self.blanks:
-                self.out.append(NEWLINE)
-            if not self.indent_level:
-                self.out.append(NEWLINE)
+
+            if not self.supress_next_blank_line:
+                if not self.blanks:
+                    self.out.append(NEWLINE)
+                if not self.indent_level:
+                    self.out.append(NEWLINE)
+            self.supress_next_blank_line = False
 
     def scan_indent(self, update=True, start=1, break_on_nl=True):
         ''' Scan down the token stream looking for indents/dedents we keep
@@ -403,6 +407,7 @@ class Peprika(object):
         self.remainder = False
         self.last_indent = 0
         self.last_closed_paren = None
+        self.supress_next_blank_line = False
 
         self.indents_current = []
         self.indents_last = []
