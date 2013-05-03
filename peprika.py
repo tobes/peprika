@@ -834,6 +834,7 @@ class Peprika(object):
             print >> sys.stderr, err
             self.errors += 1
             return
+        f.close()
 
         if self.options.pep8:
             pre_pep_errors = self.find_pep8_errors(filename=filename)
@@ -861,6 +862,11 @@ class Peprika(object):
             for line in data:
                 print line.encode('utf-8'),
 
+        if self.options.fix:
+            f = open(filename, 'w')
+            for line in data:
+                f.write(line)
+            f.close()
         f = open('poo.py', 'w')
         for line in data:
             f.write(line.encode('utf-8'))
@@ -962,6 +968,7 @@ def main():
     import argparse
     parser = argparse.ArgumentParser(description='Code reformatter for python')
     parser.add_argument('-d', '--diff', action='store_true')
+    parser.add_argument('-f', '--fix', action='store_true')
     parser.add_argument('-c', '--color', action='store_true')
     parser.add_argument('-o', '--output', action='store_true')
     parser.add_argument('-r', '--reflow', action='store_true')
@@ -975,6 +982,7 @@ def main():
     args = parser.parse_args()
 
     options.show_diff = args.diff
+    options.fix = args.fix
     options.color_diff = args.color
     options.output_file = args.output
     options.kill_blank_lines = not args.keep_blanklines
