@@ -887,8 +887,7 @@ class Peprika(object):
                'this code.  The file being reformatted is \n%s\nAborting '
                'please report this issue preferably including the code that '
                'caused this error.\n']
-        print msg
-#        sys.exit(msg[0] % filename)
+        sys.exit(msg[0] % filename)
 
 
     def find_pep8_errors(self, filename=None, lines=None):
