@@ -686,6 +686,20 @@ class Peprika(object):
             return True
         return False
 
+    def line_ends_with(self):
+        c = 1
+        line = self.stream_offset(c)[3][0]
+        while self.stream_offset(c)[3][0] == line:
+            c += 1
+        return self.stream_offset(c - 1)
+
+    def previous_line_ends_with(self):
+        c = 0
+        line = self.stream_offset(c)[3][0]
+        while self.stream_offset(c)[3][0] == line:
+            c -= 1
+        return self.stream_offset(c)
+
     def next_line_starts_with(self):
         c = 1
         line = self.stream_offset(c)[3][0]
