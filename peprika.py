@@ -843,6 +843,8 @@ class Peprika(object):
             pre_pep_errors = self.find_pep8_errors(filename=filename)
         data_copy = data[:]
         data = self.reformat(data)
+        # Do a second pass as sometimes this is needed
+        data = self.reformat(data)
         moo = ast.parse(''.join(data_copy))
 
         try:
