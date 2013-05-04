@@ -450,7 +450,7 @@ class Peprika(object):
                 # only use backslash if not in a bracket etc.
                 # Also multi-line strings need to be accounted for
                 n_token = self.stream_offset(0)
-                if n_token['type'] != tokenize.STRING:  # or '\n' not in n_token[1]:
+                if n_token['type'] != tokenize.STRING:
                     if not self.in_container():
                         if (self.line and self.line[-1] != ' '):
                             self.line.append(' ')
@@ -829,7 +829,6 @@ class Peprika(object):
                     print line[:-1]
 
     def process_file(self, filename):
-        # print '# %s' % filename
         f = open(filename, 'r')
         data = []
         for line in f:
