@@ -170,6 +170,7 @@ class Peprika(object):
             self.t_value = ' ' + re.sub('^#+([^ ])', '# \\1', self.t_value)
             if (self.options.reflow_inline_comments
                     and len(''.join(self.line).rstrip()) + 1
+                    + (self.indent_level * INDENT_SIZE)
                     + len(self.t_value.rstrip()) > MAX_LINE_LEN):
                 self.out.append(
                     self.format_comment(self.t_value.lstrip(),
