@@ -285,15 +285,16 @@ class Peprika(object):
             self.supress_next_blank_line = True
 
         # differentiate between subtraction and negation
-        if (self.t_value in '-'
-                and not (self.l_type in BASIC_TOKENS
-                         or (self.l_type == tokenize.NL
-                             and (self.stream_offset(-2)['type'] in BASIC_TOKENS
-                                  or self.stream_offset(-2)['value'] in ')}]'))
-                         or (self.l_type == tokenize.OP
-                             and self.l_value in ')}]'))):
-            self.need_space_before = False
-            self.need_space_after = False
+        if self.t_value in '-':
+            before_last = self.stream_offset(-2)
+            if (not (self.l_type in BASIC_TOKENS
+                     or (self.l_type == tokenize.NL
+                         and (before_last['type'] in BASIC_TOKENS
+                              or before_last['value'] in ')}]'))
+                     or (self.l_type == tokenize.OP
+                         and self.l_value in ')}]'))):
+                self.need_space_before = False
+                self.need_space_after = False
 
     def _COMMENT(self):
         # Format in-line comments if wanted
