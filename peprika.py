@@ -405,7 +405,8 @@ class Peprika(object):
         self.clear_container_count = 0
         # Indentation amounts for hanging elements
         self.hindent = [{'pos': 0, 'indent': 0, 'open': True}]
-        self.hindent_old = [{'pos': 0, 'indent': 0, 'open': True}]  # Indentation cache
+        # Indentation cache
+        self.hindent_old = [{'pos': 0, 'indent': 0, 'open': True}]
         self.hanging = 0  # Current hanging level
         self.hanging_old = 0  # Current hanging level
         self.hanging_current = 0
