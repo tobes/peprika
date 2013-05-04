@@ -533,12 +533,12 @@ class Peprika(object):
         self.indent_last = 0
 
         # Process the stream
-        for stream in self.stream:
-            self.t_type = stream['type']
-            self.t_value = stream['value']
-            self.t_line = stream['line']
-            self.t_start = stream['start']
-            self.t_end = stream['end']
+        for stream_item in self.stream:
+            self.t_type = stream_item['type']
+            self.t_value = stream_item['value']
+            self.t_line = stream_item['line']
+            self.t_start = stream_item['start']
+            self.t_end = stream_item['end']
 
             self.need_space_before = False
             self.need_space_after = False
