@@ -287,6 +287,9 @@ class Peprika(object):
         # differentiate between subtraction and negation
         if (self.t_value in '-'
                 and not (self.l_type in BASIC_TOKENS
+                         or (self.l_type == tokenize.NL
+                             and (self.stream_offset(-2)['type'] in BASIC_TOKENS
+                                  or self.stream_offset(-2)['value'] in ')}]'))
                          or (self.l_type == tokenize.OP
                              and self.l_value in ')}]'))):
             self.need_space_before = False
