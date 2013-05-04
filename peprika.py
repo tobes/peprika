@@ -18,6 +18,32 @@ NEWLINE = '\n'
 BASIC_TOKENS = [tokenize.NAME, tokenize.STRING, tokenize.NUMBER]
 
 
+class Stream(object):
+
+    def __init__(self, stream):
+        self.stream = stream
+        self.length = len(stream)
+        self._offset = 0
+
+    def offset(self, offset=0):
+        ''' Get the stream item relative to the one currently being
+        processed. '''
+        try:
+            return self.stream[self._offset + offset - 1]
+        except IndexError:
+            return (None, '', False)
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if self._offset < self.length:
+            self._offset += 1
+            return self.stream[self._offset - 1]
+        else:
+            raise StopIteration()
+
+
 class Peprika(object):
 
     opposites = {
@@ -201,10 +227,7 @@ class Peprika(object):
     def stream_offset(self, offset=0):
         ''' Get the stream item relative to the one currently being
         processed. '''
-        try:
-            return self.stream[self.offset + offset]
-        except IndexError:
-            return (None, '', False)
+        return self.stream.offset(offset)
 
     def add_blanklines_if_needed(self):
         ''' Add extra blank lines before class and def statements.  Two if
@@ -377,7 +400,7 @@ class Peprika(object):
         tokgen = tokenize.generate_tokens(s.readline)
 
         # Create our stream to allow looking ahead of our current line
-        self.stream = []
+        stream = []
         for t_type, t_value, start, end, t_line in tokgen:
             if 0:  # Change to if 1 to see the tokens fly by.
                 print ('%10s %-20r' %
@@ -386,12 +409,12 @@ class Peprika(object):
                            t_value
                        )
                        ), t_line[:-1]
-            self.stream.append(dict(type=t_type,
-                                    value=t_value.decode('utf-8'),
-                                    line=t_line,
-                                    start=start,
-                                    end=end))
-
+            stream.append(dict(type=t_type,
+                               value=t_value.decode('utf-8'),
+                               line=t_line,
+                               start=start,
+                               end=end))
+        self.stream = Stream(stream)
         self.out = []  # Final output
         self.line = []  # elements for the current line being built
         self.l_type = None
@@ -425,9 +448,7 @@ class Peprika(object):
         self.indent_last = 0
 
         # Process the stream
-        self.offset = 0
-        while self.offset < len(self.stream):
-            stream = self.stream[self.offset]
+        for stream in self.stream:
             self.t_type = stream['type']
             self.t_value = stream['value']
             self.t_line = stream['line']
@@ -440,7 +461,6 @@ class Peprika(object):
             name = tokenize.tok_name.get(self.t_type, self.t_type)
             try:
                 if getattr(self, '_' + name)() is False:
-                    self.offset += 1
                     self.l_type = self.t_type
                     continue
             except AttributeError:
@@ -493,7 +513,6 @@ class Peprika(object):
             self.l_type = self.t_type
             self.l_value = self.t_value
             self.l_line_no = self.t_end[0]
-            self.offset += 1
 
         # generate the last line
         self.output_line(no_blank=True)
