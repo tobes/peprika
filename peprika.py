@@ -43,6 +43,97 @@ class Stream(object):
         else:
             raise StopIteration()
 
+    def closing_op_starts_line(self):
+        c = self.find_closing_op_offset()
+        if self.offset(c - 2)['type'] == tokenize.NL:
+            return True
+        return False
+
+    def previous_line_ends_with(self):
+        ''' returns the previous lines last token'''
+        c = 0
+        line = self.offset(c)['start'][0]
+        while self.offset(c)['start'][0] == line:
+            c -= 1
+        return self.offset(c)
+
+    def closing_op_on_same_line(self):
+        cons = []
+        c = 1
+        line = self.offset(c)['start'][0]
+        while self.offset(c)['start'][0] == line:
+            t_next = self.offset(c)
+            if t_next['value'] in '({[':
+                cons.append(t_next['type'])
+            if t_next['value'] in ')}]':
+                if cons:
+                    cons = cons[:-1]
+                else:
+                    return True
+            c += 1
+        return False
+
+    def find_closing_op_offset(self, c=0):
+        cons = [self.offset(c)['value']]
+        c += 1
+        while cons:
+            t_next = self.offset(c)
+            if t_next['value'] in '({[':
+                cons.append(t_next['value'])
+            if t_next['value'] in ')}]':
+                cons = cons[:-1]
+            c += 1
+        return c
+
+    def line_has_another_opener(self):
+        cons = []
+        c = 1
+        line = self.offset(c)['start'][0]
+        while self.offset(c)['start'][0] == line:
+            t_next = self.offset(c)
+            if t_next['value'] in '({[':
+                cons.append(t_next['value'])
+            if t_next['value'] in ')}]':
+                cons = cons[:-1]
+            if t_next['type'] == tokenize.NEWLINE:
+                break
+            c += 1
+        return bool(len(cons))
+
+    def next_line_starts_with(self):
+        c = 1
+        line = self.stream_offset(c)['start'][0]
+        while self.stream_offset(c)['start'][0] == line:
+            c += 1
+        return self.stream_offset(c + 1)
+
+    def line_ends_with(self):
+        c = 1
+        line = self.offset(c)['start'][0]
+        while self.offset(c)['start'][0] == line:
+            c += 1
+        return self.stream_offset(c - 1)
+
+    def closing_op_line_closing_op(self):
+        c = self.find_closing_op_offset()
+        cons = []
+        con_min = 0
+        line = self.stream_offset(c)['start'][0]
+        while self.stream_offset(c)['start'][0] == line:
+            t_next = self.stream_offset(c)
+            if t_next['value'] in '({[':
+                cons.append(t_next['type'])
+            if t_next['value'] in ')}]':
+                if cons:
+                    cons = cons[:-1]
+                else:
+                    con_min -= 1
+            c += 1
+        if con_min < 0:
+            return self.indents_current[con_min]
+        else:
+            return None
+
 
 class Peprika(object):
 
@@ -747,94 +838,19 @@ class Peprika(object):
         return None
 
     def closing_op_starts_line(self):
-        c = self.find_closing_op_offset()
-        if self.stream_offset(c - 2)['type'] == tokenize.NL:
-            return True
-        return False
-
-    def line_ends_with(self):
-        c = 1
-        line = self.stream_offset(c)['start'][0]
-        while self.stream_offset(c)['start'][0] == line:
-            c += 1
-        return self.stream_offset(c - 1)
+        return self.stream.closing_op_starts_line()
 
     def previous_line_ends_with(self):
-        c = 0
-        line = self.stream_offset(c)['start'][0]
-        while self.stream_offset(c)['start'][0] == line:
-            c -= 1
-        return self.stream_offset(c)
-
-    def next_line_starts_with(self):
-        c = 1
-        line = self.stream_offset(c)['start'][0]
-        while self.stream_offset(c)['start'][0] == line:
-            c += 1
-        return self.stream_offset(c + 1)
-
-    def closing_op_line_closing_op(self):
-        c = self.find_closing_op_offset()
-        cons = []
-        con_min = 0
-        line = self.stream_offset(c)['start'][0]
-        while self.stream_offset(c)['start'][0] == line:
-            t_next = self.stream_offset(c)
-            if t_next['value'] in '({[':
-                cons.append(t_next['type'])
-            if t_next['value'] in ')}]':
-                if cons:
-                    cons = cons[:-1]
-                else:
-                    con_min -= 1
-            c += 1
-        if con_min < 0:
-            return self.indents_current[con_min]
-        else:
-            return None
+        return self.stream.previous_line_ends_with()
 
     def closing_op_on_same_line(self):
-        cons = []
-        c = 1
-        line = self.stream_offset(c)['start'][0]
-        while self.stream_offset(c)['start'][0] == line:
-            t_next = self.stream_offset(c)
-            if t_next['value'] in '({[':
-                cons.append(t_next['type'])
-            if t_next['value'] in ')}]':
-                if cons:
-                    cons = cons[:-1]
-                else:
-                    return True
-            c += 1
-        return False
+        return self.stream.closing_op_on_same_line()
 
     def find_closing_op_offset(self, c=0):
-        cons = [self.stream_offset(c)['value']]
-        c += 1
-        while cons:
-            t_next = self.stream_offset(c)
-            if t_next['value'] in '({[':
-                cons.append(t_next['value'])
-            if t_next['value'] in ')}]':
-                cons = cons[:-1]
-            c += 1
-        return c
+        return self.stream.find_closing_op_offset(c)
 
     def line_has_another_opener(self):
-        cons = []
-        c = 1
-        line = self.stream_offset(c)['start'][0]
-        while self.stream_offset(c)['start'][0] == line:
-            t_next = self.stream_offset(c)
-            if t_next['value'] in '({[':
-                cons.append(t_next['value'])
-            if t_next['value'] in ')}]':
-                cons = cons[:-1]
-            if t_next['type'] == tokenize.NEWLINE:
-                break
-            c += 1
-        return bool(len(cons))
+        return self.stream.line_has_another_opener()
 
     def indents(self):
         c = -1
