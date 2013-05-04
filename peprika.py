@@ -20,7 +20,19 @@ BASIC_TOKENS = [tokenize.NAME, tokenize.STRING, tokenize.NUMBER]
 
 class Stream(object):
 
-    def __init__(self, stream):
+    def __init__(self, source):
+        # Create our stream to allow looking ahead of our current line
+        stream = []
+        s = cStringIO.StringIO(''.join(source))
+        tokgen = tokenize.generate_tokens(s.readline)
+        for t_type, t_value, start, end, t_line in tokgen:
+            stream.append({
+                'type': t_type,
+                'value': t_value.decode('utf-8'),
+                'line': t_line,
+                'start': start,
+                'end': end,
+            })
         self.stream = stream
         self.length = len(stream)
         self._offset = 0
@@ -487,25 +499,7 @@ class Peprika(object):
 
     def reformat(self, source):
         ''' The main beast '''
-        s = cStringIO.StringIO(''.join(source))
-        tokgen = tokenize.generate_tokens(s.readline)
-
-        # Create our stream to allow looking ahead of our current line
-        stream = []
-        for t_type, t_value, start, end, t_line in tokgen:
-            if 0:  # Change to if 1 to see the tokens fly by.
-                print ('%10s %-20r' %
-                       (
-                           self.token_name(t_type),
-                           t_value
-                       )
-                       ), t_line[:-1]
-            stream.append(dict(type=t_type,
-                               value=t_value.decode('utf-8'),
-                               line=t_line,
-                               start=start,
-                               end=end))
-        self.stream = Stream(stream)
+        self.stream = Stream(source)
         self.out = []  # Final output
         self.line = []  # elements for the current line being built
         self.l_type = None
