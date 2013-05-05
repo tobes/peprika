@@ -331,11 +331,6 @@ class Peprika(object):
                         self.indent_level += 1
                         self.block_indent += 1
 
-    def stream_offset(self, offset=0):
-        ''' Get the stream item relative to the one currently being
-        processed. '''
-        return self.stream.offset(offset)
-
     def add_blanklines_if_needed(self, value):
         ''' Add extra blank lines before class and def statements.  Two if
         on top level otherwise one. '''
@@ -504,6 +499,15 @@ class Peprika(object):
     def reformat(self, source):
         ''' The main beast '''
         self.stream = Stream(source)
+
+        # make some functions easier to use
+        self.closing_op_starts_line = self.stream.closing_op_starts_line
+        self.previous_line_ends_with = self.stream.previous_line_ends_with
+        self.closing_op_on_same_line = self.stream.closing_op_on_same_line
+        self.find_closing_op_offset = self.stream.find_closing_op_offset
+        self.line_has_another_opener = self.stream.line_has_another_opener
+        self.stream_offset = self.stream.offset
+
         self.out = []  # Final output
         self.line = []  # elements for the current line being built
         self.l_type = None
@@ -834,21 +838,6 @@ class Peprika(object):
             if self.indents_current[i - 1]['line'] != line:
                 return self.indents_current[i - 1]
         return None
-
-    def closing_op_starts_line(self):
-        return self.stream.closing_op_starts_line()
-
-    def previous_line_ends_with(self):
-        return self.stream.previous_line_ends_with()
-
-    def closing_op_on_same_line(self):
-        return self.stream.closing_op_on_same_line()
-
-    def find_closing_op_offset(self, c=0):
-        return self.stream.find_closing_op_offset(c)
-
-    def line_has_another_opener(self):
-        return self.stream.line_has_another_opener()
 
     def indents(self):
         c = -1
