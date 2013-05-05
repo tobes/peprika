@@ -254,11 +254,11 @@ class Peprika(object):
         # Keep keywords spaced
         if iskeyword(stream.t_value):
             self.need_space_after = True
-            if (not (self.stream.l_value == '('
-                     or (self.in_container() and self.stream.l_value == '='))):
+            if (not (stream.l_value == '('
+                     or (self.in_container() and stream.l_value == '='))):
                 self.need_space_before = True
         # Keep space between variables
-        if self.stream.l_type == tokenize.NAME:
+        if stream.l_type == tokenize.NAME:
             self.need_space_before = True
 
     def _OP(self, stream):
@@ -296,9 +296,9 @@ class Peprika(object):
 
         # Special case for (*args, **kw)
         if stream.t_value in ['*', '**'] and self.in_container():
-            if self.stream.l_value in ['(', ',', '\n']:
+            if stream.l_value in ['(', ',', '\n']:
                 self.need_space_after = False
-            if self.stream.l_value == '(':
+            if stream.l_value == '(':
                 self.need_space_before = False
 
         # Special case for list slices
@@ -314,13 +314,13 @@ class Peprika(object):
 
         # differentiate between subtraction and negation
         if stream.t_value in '-':
-            before_last = self.stream_offset(-2)
-            if (not (self.stream.l_type in BASIC_TOKENS
-                     or (self.stream.l_type == tokenize.NL
+            before_last = stream.offset(-2)
+            if (not (stream.l_type in BASIC_TOKENS
+                     or (stream.l_type == tokenize.NL
                          and (before_last['type'] in BASIC_TOKENS
                               or before_last['value'] in ')}]'))
-                     or (self.stream.l_type == tokenize.OP
-                         and self.stream.l_value in ')}]'))):
+                     or (stream.l_type == tokenize.OP
+                         and stream.l_value in ')}]'))):
                 self.need_space_before = False
                 self.need_space_after = False
 
