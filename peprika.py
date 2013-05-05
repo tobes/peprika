@@ -36,6 +36,13 @@ class Stream(object):
         self.stream = stream
         self.length = len(stream)
         self._offset = 0
+        self.l_type = None
+        self.l_value = None
+        self.l_line = None
+        self.t_type = None
+        self.t_value = None
+        self.t_end = (0, 0)
+        self._block_update = False
 
     def offset(self, offset=0):
         ''' Get the stream item relative to the one currently being
@@ -50,10 +57,31 @@ class Stream(object):
 
     def next(self):
         if self._offset < self.length:
+
+            self.l_type = self.t_type
+            if not self._block_update:
+                self.l_value = self.t_value
+                self.l_line_no = self.t_end[0]
+            self._block_update = False
+
+            stream_item = self.stream[self._offset]
+
+            self.t_type = stream_item['type']
+            self.t_value = stream_item['value']
+            self.t_line = stream_item['line']
+            self.t_start = stream_item['start']
+            self.t_end = stream_item['end']
             self._offset += 1
-            return self.stream[self._offset - 1]
+
+            return stream_item
         else:
             raise StopIteration()
+
+    def update_line(self):
+        self.l_line = self.t_line
+
+    def block_update(self):
+        self._block_update = True
 
     def closing_op_starts_line(self):
         c = self.find_closing_op_offset()
@@ -166,12 +194,12 @@ class Peprika(object):
 
         self.pep_examples = {}
 
-    def _NEWLINE(self, value):
+    def _NEWLINE(self, stream):
         self.continuation = False
-        self.l_line = None
+        stream.l_line = None
         self.nl = True
 
-    def _DEDENT(self, value):
+    def _DEDENT(self, stream):
         if not self.block_indent:
             self.indent_level -= 1
             self.last_indent -= INDENT_SIZE
@@ -179,7 +207,7 @@ class Peprika(object):
             self.block_indent += 1
         return False
 
-    def _INDENT(self, value):
+    def _INDENT(self, stream):
         if not self.block_indent:
             self.indent_level += 1
             self.last_indent += INDENT_SIZE
@@ -187,14 +215,14 @@ class Peprika(object):
             self.block_indent -= 1
         return False
 
-    def _NL(self, value):
-        self.l_line = None
+    def _NL(self, stream):
+        stream.l_line = None
         self.nl = True
 
-    def _STRING(self, value):
+    def _STRING(self, stream):
         # Change quotes to single or double if requested.
         if self.options.fix_quotes:
-            t = value
+            t = stream.t_value
             q = self.options.fix_quotes
             qq = self.opposites[self.options.fix_quotes]
             sp = u''
@@ -217,96 +245,96 @@ class Peprika(object):
             pass
             # sort white space
             # FIXME docstring changes break ast
-            # lines = value.splitlines()
+            # lines = stream.t_value.splitlines()
             # self.t_value = NEWLINE.join([line.rstrip() for line in lines])
 
-    def _NAME(self, value):
-        self.add_blanklines_if_needed(value)
+    def _NAME(self, stream):
+        self.add_blanklines_if_needed(stream.t_value)
 
         # Keep keywords spaced
-        if iskeyword(value):
+        if iskeyword(stream.t_value):
             self.need_space_after = True
-            if (not (self.l_value == '('
-                     or (self.in_container() and self.l_value == '='))):
+            if (not (self.stream.l_value == '('
+                     or (self.in_container() and self.stream.l_value == '='))):
                 self.need_space_before = True
         # Keep space between variables
-        if self.l_type == tokenize.NAME:
+        if self.stream.l_type == tokenize.NAME:
             self.need_space_before = True
 
-    def _OP(self, value):
+    def _OP(self, stream):
         # commas should be on the end of lines not at the start
-        if value == ',' and not self.line:
+        if stream.t_value == ',' and not self.line:
             last_line = self.out[-1].rstrip(NEWLINE) + ',' + NEWLINE
             self.out = self.out[:-1] + [last_line]
             self.t_type = tokenize.NL
             return False
 
         # fix depreciation
-        if value == '<>':
+        if stream.t_value == '<>':
             self.t_value = '!='
 
         # General settings
-        if value not in '(){}[].':
+        if stream.t_value not in '(){}[].':
             self.need_space_before = True
             self.need_space_after = True
 
         # if there is a space before .;: operators remove it.
-        if value in ':,;':
+        if stream.t_value in ':,;':
             if self.line and self.line[-1] == ' ':
                 self.line = self.line[:-1]
             self.need_space_before = False
 
-        if value in ')}]':
+        if stream.t_value in ')}]':
             if self.line and self.line[-1] == ' ':
                 if len(self.line) > 1 and self.line[-2] != ',':
                     self.line = self.line[:-1]
 
         # No space between assignments/defaults for keywords
-        if value == '=' and self.in_container():
+        if stream.t_value == '=' and self.in_container():
             self.need_space_before = False
             self.need_space_after = False
 
         # Special case for (*args, **kw)
-        if value in ['*', '**'] and self.in_container():
-            if self.l_value in ['(', ',', '\n']:
+        if stream.t_value in ['*', '**'] and self.in_container():
+            if self.stream.l_value in ['(', ',', '\n']:
                 self.need_space_after = False
-            if self.l_value == '(':
+            if self.stream.l_value == '(':
                 self.need_space_before = False
 
         # Special case for list slices
-        if (value == ':' and self.in_container()
+        if (stream.t_value == ':' and self.in_container()
                 and self.last_container()['char'] == '['):
             self.need_space_after = False
 
         # decorators
-        if value == '@':
-            self.add_blanklines_if_needed(value)
+        if stream.t_value == '@':
+            self.add_blanklines_if_needed(stream.t_value)
             self.need_space_after = False
             self.supress_next_blank_line = True
 
         # differentiate between subtraction and negation
-        if value in '-':
+        if stream.t_value in '-':
             before_last = self.stream_offset(-2)
-            if (not (self.l_type in BASIC_TOKENS
-                     or (self.l_type == tokenize.NL
+            if (not (self.stream.l_type in BASIC_TOKENS
+                     or (self.stream.l_type == tokenize.NL
                          and (before_last['type'] in BASIC_TOKENS
                               or before_last['value'] in ')}]'))
-                     or (self.l_type == tokenize.OP
-                         and self.l_value in ')}]'))):
+                     or (self.stream.l_type == tokenize.OP
+                         and self.stream.l_value in ')}]'))):
                 self.need_space_before = False
                 self.need_space_after = False
 
-    def _COMMENT(self, value):
+    def _COMMENT(self, stream):
         # Format in-line comments if wanted
         if self.line:
             self.need_space_before = True
-            self.t_value = ' ' + re.sub('^#+([^ ])', '# \\1', value)
+            self.t_value = ' ' + re.sub('^#+([^ ])', '# \\1', stream.t_value)
             if (self.options.reflow_inline_comments
                     and len(''.join(self.line).rstrip()) + 1
                     + (self.indent_level * INDENT_SIZE)
-                    + len(value.rstrip()) > MAX_LINE_LEN):
+                    + len(stream.t_value.rstrip()) > MAX_LINE_LEN):
                 self.out.append(
-                    self.format_comment(value.lstrip(),
+                    self.format_comment(stream.t_value.lstrip(),
                                         remove_initial_indent=False)
                     + NEWLINE
                 )
@@ -325,7 +353,7 @@ class Peprika(object):
                 # comment in the stream
                 self.scan_indent()
                 if self.options.reflow_comments:
-                    self.t_value = self.format_comment(value)
+                    self.t_value = self.format_comment(stream.t_value)
                 if not self.block_indent:
                     if self.previous_line_ends_with()['line'][-2:-1] == ':':
                         self.indent_level += 1
@@ -510,9 +538,6 @@ class Peprika(object):
 
         self.out = []  # Final output
         self.line = []  # elements for the current line being built
-        self.l_type = None
-        self.l_value = None
-        self.l_line = None
         self.indent_level = 0  # Current level of indentation
         # Prevent indentation level changes when they have been
         # already processed for comments
@@ -553,15 +578,15 @@ class Peprika(object):
 
             name = tokenize.tok_name.get(self.t_type, self.t_type)
             try:
-                if getattr(self, '_' + name)(self.t_value) is False:
-                    self.l_type = self.t_type
+                if getattr(self, '_' + name)(self.stream) is False:
+                    self.stream.block_update()
                     continue
             except AttributeError:
                 pass
 
             # Continuation lines
-            if (not self.nl and self.l_line
-                    and self.l_line_no != self.t_start[0]):
+            if (not self.nl and self.stream.l_line
+                    and self.stream.l_line_no != self.t_start[0]):
                 # only use backslash if not in a bracket etc.
                 # Also multi-line strings need to be accounted for
                 n_token = self.stream_offset(0)
@@ -572,7 +597,7 @@ class Peprika(object):
                         self.line.append('\\')
                         self.continuation = True
                     else:
-                        self._NEWLINE()
+                        self._NEWLINE(self.stream)
                     self.do_newline()
 
             # add the token to the line with any request whitespace
@@ -601,11 +626,7 @@ class Peprika(object):
                 self.continuation = False
                 self.do_newline()
             else:
-                self.l_line = self.t_line
-
-            self.l_type = self.t_type
-            self.l_value = self.t_value
-            self.l_line_no = self.t_end[0]
+                self.stream.update_line()
 
         # generate the last line
         self.output_line(no_blank=True)
@@ -663,7 +684,7 @@ class Peprika(object):
         hanging = (
             (self.stream_offset(1)['type'] == tokenize.NL
                 or (self.stream_offset(1)['type'] != tokenize.STRING
-                    and self.stream_offset(1)['start'][0] != self.l_line_no))
+                    and self.stream_offset(1)['start'][0] != self.stream.l_line_no))
         )
         if (self.continuation_last and level == 1 and char in '[{'
                 and self.stream_offset(1)['type'] != tokenize.NL):
